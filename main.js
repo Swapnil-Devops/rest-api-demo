@@ -1,77 +1,28 @@
-const core = require("@actions/core");
-const github = require("@actions/github");
-const fs = require("fs");
-try {
-  // const commentBody = github.context.payload.comment.body;
-  const discussionTitle = github.context.payload.discussion.title;
-  const discussionNum = github.context.payload.discussion.number;
-  const discussionNodeId = github.context.payload.discussion.node_id;
-  const discussionBody = github.context.payload.discussion.body;
-  const jsonFilePath = core.getInput("json-file");
+import fs from 'fs';
+import * as jsonschema from 'jsonschema';
+import schema from './schema.json' assert { type: 'json' };
+import core from '@actions/core';
+import github from '@actions/github';
 
-  // console.log(`Comment Body: ${commentBody}`);
-  console.log(`Discussion Title: ${discussionTitle}`);
-  console.log(`Discussion number: ${discussionNum}`);
-  console.log(`Discussion Node ID: ${discussionNodeId}`);
-  console.log(`Discussion Body: ${discussionBody}`);
+const discussionTitle = github.context.payload.discussion.title;
+const discussionLabels = github.context.payload.discussion.labels ? github.context.payload.discussion.labels.map(label => label.name) : [];
+const discussionBody = github.context.payload.discussion.body;
 
-  // Construct the GraphQL query
-  const query = `
-    query {
-      repository(owner: "${github.context.repo.owner}", name: "${github.context.repo.repo}") {
-        discussion(number: ${discussionNum}) {
-          title
-          body
-          labels(first: 10) {
-            nodes {
-              name
-            }
-          }
-        }
-      }
-    }
-  `;
+const promptJson = {
+  Title: discussionTitle,
+  Labels: discussionLabels,
+  Body: discussionBody
+};
 
-  // Make a request to the GitHub GraphQL API using octokit
-  const octokit = github.getOctokit(core.getInput("PAT")); // Assuming you pass your repository token as an input
+console.log('Constructed prompt JSON:\n', JSON.stringify(promptJson, null, 2));
 
-  // Use .graphql instead of .graphql.query for making the request
-  octokit.graphql(query).then((response) => {
-    // Extract labels from the response
-    const discussionLabels = response.repository.discussion.labels.nodes.map(
-      (node) => node.name
-    );
-    console.log("Discussion Labels:", discussionLabels);
+const promptJsonString = JSON.stringify(promptJson, null, 2);
 
-  fs.readFile(jsonFilePath, 'utf8', (err, data) => {
-    if (err) {
-      console.error('Error reading JSON file:', err);
-      return;
-    }
-      
-    const jsonData = JSON.parse(data);
-      
-    jsonData.discussionTitle = discussionTitle;
-    jsonData.discussionLabels = discussionLabels;
-    jsonData.discussionBody = discussionBody;
-      
-    fs.writeFile(jsonFilePath, JSON.stringify(jsonData, null, 2), (err) => {
-      if (err) {
-        console.error('Error writing JSON file:', err);
-        return;
-      }
-      console.log('JSON file updated successfully.');
-    });
-  });
-
-
-    // Set an output for the comment body, discussion ID, discussion body, and labels
-    // core.setOutput("comment_body", commentBody);
-  core.setOutput("disc_ID", discussionNodeId);
-  core.setOutput("disc_body", discussionBody);
-  core.setOutput("disc_title",discussionTitle);
-  core.setOutput("disc_labels", discussionLabels.join(", "));
-  });
-} catch (error) {
-  core.setFailed(error.message);
+const validationResult = jsonschema.validate(promptJson, schema);
+if (validationResult.valid) {
+  console.log('Generated prompt JSON is valid.');
+  fs.writeFileSync('prompt.json', promptJsonString);
+} else {
+  console.log('Generated prompt JSON is invalid.');
+  console.log('Validation errors:', validationResult.errors);
 }
