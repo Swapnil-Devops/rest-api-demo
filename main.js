@@ -6,6 +6,7 @@ const github = require('@actions/github');
 
 const discussionTitle = github.context.payload.discussion.title;
 const discussionBody = github.context.payload.discussion.body;
+const discussionNum = github.context.payload.discussion.number;
 
 const query = `
     query {
