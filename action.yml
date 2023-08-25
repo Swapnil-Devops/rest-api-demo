@@ -5,6 +5,9 @@ inputs:
   PAT:
     description: "GitHub repository token"
     required: true
+  json-file:
+    description: "File path of prompt.json"
+    required: true
 outputs:
   comment_body:
     description: "Comment body"
@@ -16,4 +19,4 @@ outputs:
     description: "Discussion labels"
 runs:
   using: node16
-  main: index.js
+  main: main.js

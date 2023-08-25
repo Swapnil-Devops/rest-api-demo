@@ -1,0 +1,5 @@
+{
+  "discussionTitle": "Sample Discussion",
+  "discussionLabels": ["feature", "bug"],
+  "discussionBody": "This is a sample discussion about generating prompt JSON."
+}
