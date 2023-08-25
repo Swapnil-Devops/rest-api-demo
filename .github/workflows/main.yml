@@ -20,6 +20,6 @@ jobs:
         uses: Swapnil-Devops/rest-api-demo@main
         with:
           PAT: ${{ secrets.GITHUB_TOKEN }}
-          json-file: ./prompt.json
+          json-file: prompt.json
       - name: verify Labels
         run: echo "${{ steps.discussion-info.outputs.disc_labels}}"    
