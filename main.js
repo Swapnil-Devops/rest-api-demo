@@ -43,33 +43,34 @@ try {
     );
     console.log("Discussion Labels:", discussionLabels);
 
-    fs.readFile(jsonFilePath, "utf8", (err, data) => {
+  fs.readFile(jsonFilePath, 'utf8', (err, data) => {
+    if (err) {
+      console.error('Error reading JSON file:', err);
+      return;
+    }
+      
+    const jsonData = JSON.parse(data);
+      
+    jsonData.discussionTitle = discussionTitle;
+    jsonData.discussionLabels = discussionLabels;
+    jsonData.discussionBody = discussionBody;
+      
+    fs.writeFile(jsonFilePath, JSON.stringify(jsonData, null, 2), (err) => {
       if (err) {
-        console.error("Error reading JSON file:", err);
+        console.error('Error writing JSON file:', err);
         return;
       }
-
-      const jsonData = JSON.parse(data);
-
-      jsonData.discussionTitle = discussionTitle;
-      jsonData.discussionLabels = discussionLabels;
-      jsonData.discussionBody = discussionBody;
-
-      fs.writeFile(jsonFilePath, JSON.stringify(jsonData, null, 2), (err) => {
-        if (err) {
-          console.error("Error writing JSON file:", err);
-          return;
-        }
-        console.log("JSON file updated successfully.");
-      });
+      console.log('JSON file updated successfully.');
     });
+  });
+
 
     // Set an output for the comment body, discussion ID, discussion body, and labels
     // core.setOutput("comment_body", commentBody);
-    core.setOutput("disc_ID", discussionNodeId);
-    core.setOutput("disc_body", discussionBody);
-    core.setOutput("disc_title", discussionTitle);
-    core.setOutput("disc_labels", discussionLabels.join(", "));
+  core.setOutput("disc_ID", discussionNodeId);
+  core.setOutput("disc_body", discussionBody);
+  core.setOutput("disc_title",discussionTitle);
+  core.setOutput("disc_labels", discussionLabels.join(", "));
   });
 } catch (error) {
   core.setFailed(error.message);
